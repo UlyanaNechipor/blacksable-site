@@ -1,0 +1,10 @@
+{
+  "updated": "2026-10-30 (тестовые данные)",
+  "items": [
+    { "shop": "TSUM",           "sku": "Test", "color": "", "size": "42", "qty": 2 },
+    { "shop": "TSUM",           "sku": "Test", "color": "", "size": "44", "qty": 1 },
+    { "shop": "BABOCHKA",       "sku": "Test", "color": "", "size": "46", "qty": 1 },
+    { "shop": "ДЛТ",            "sku": "Test", "color": "", "size": "44", "qty": 3 },
+    { "shop": "VIP AVENUE",     "sku": "Test", "color": "", "size": "42", "qty": 1 }
+  ]
+}

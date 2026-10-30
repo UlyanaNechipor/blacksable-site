@@ -255,6 +255,7 @@
     return '';
   }
   var PAGE_COLOR = pageColorName();
+  window.__bsPageColor = PAGE_COLOR; // им пользуется блок остатков у партнёров
 
   function boxes() {
     return [].slice.call(document.querySelectorAll(BOX_SEL)).filter(function (b) { return !b.closest(SKIP_SEL); });
