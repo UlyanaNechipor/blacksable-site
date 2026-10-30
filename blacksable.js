@@ -630,6 +630,63 @@ try {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+/* ===== Исправление старых ссылок: технический домен Тильды, сломанные адреса /http/, удалённый каталог ===== */
+(function () {
+  if (window.__bsLinkFixInit) return;
+  window.__bsLinkFixInit = true;
+
+  var OLD_HOST = /(^|\.)tilda\.ws$|^(www\.)?blacksable\.ru$/i;   // ссылки, которые ведут на сайт (в т. ч. через технический домен)
+
+  // старый адрес -> новый (без домена)
+  var PATHS = {
+    '/page66667483.html': '/o_brende',
+    '/page70679605.html': '/kak_sdelat_zakaz'
+  };
+  // ссылка по подписи (подвал): куда она должна вести на самом деле
+  var BY_TEXT = {
+    'аксессуары': '/catalog_woman_accessories',
+    'одежда': '/catalog_woman_collection'
+  };
+  // «Вся коллекция» ведёт на удалённый каталог — ведём в каталог того же раздела, что и товар
+  function collectionFor(path) {
+    var p = location.pathname.toLowerCase();
+    if (/^\/item_acc_m_/.test(p)) return '/catalog_man_accessories';
+    if (/^\/item_acc_/.test(p)) return '/catalog_woman_accessories';
+    if (/^\/item_m_/.test(p)) return '/catalog_man_collection';
+    return '/catalog_woman_collection';
+  }
+  var OLD_CATALOGS = { '/catalog_women': 1, '/catalog_men': 1, '/catalog_accessories_women': 1, '/catalog_accessories_men': 1 };
+
+  function fix(a) {
+    var raw = a.getAttribute('href');
+    if (!raw || raw.charAt(0) === '#' || /^(mailto|tel|javascript):/i.test(raw)) return;
+    var u;
+    try { u = new URL(raw, location.href); } catch (e) { return; }
+    if (!OLD_HOST.test(u.hostname)) return;
+    var path = u.pathname;
+    var fixedPath = path.replace(/^\/http\/blacksableru\/?/i, '/');               // адрес, вставленный целиком в поле адреса страницы
+    if (fixedPath !== path && !/^\/item_/i.test(fixedPath)) fixedPath = '/item_' + fixedPath.replace(/^\/(item_)?/i, '');
+    var low = fixedPath.toLowerCase().replace(/\/+$/, '');
+    var text = a.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+    if (PATHS[low]) fixedPath = (BY_TEXT[text] && low === '/page66667483.html') ? BY_TEXT[text] : PATHS[low];
+    else if (OLD_CATALOGS[low]) fixedPath = collectionFor(low);
+    var want = fixedPath + u.search + u.hash;
+    var sameSite = u.hostname.toLowerCase() === location.hostname.toLowerCase();
+    if (sameSite && want === u.pathname + u.search + u.hash) return;               // ссылка и так правильная
+    a.setAttribute('href', want);
+    if (a.getAttribute('target') === '_blank' && /tilda\.ws$/i.test(u.hostname)) a.removeAttribute('target');
+  }
+  function run() { document.querySelectorAll('a[href]').forEach(fix); }
+
+  var timer = null;
+  function init() {
+    run();
+    new MutationObserver(function () { clearTimeout(timer); timer = setTimeout(run, 150); })
+      .observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
 } catch (e) { if (window.console) console.warn('[blacksable] 03-store-helpers:', e); }
 
 try {
