@@ -6,7 +6,8 @@
 
   var DEBUG = /[?&]colordebug=1/.test(location.search);
   // файл с остатками лежит рядом со скриптом в репозитории; обновляется раз в час (как и скрипт)
-  var DATA_FILE = '/gh/UlyanaNechipor/blacksable-site@main/data/partners.json';
+  // версию (номер) сообщает строка загрузки в подвале; без неё — последняя версия ветки
+  function dataFile() { return '/gh/UlyanaNechipor/blacksable-site@' + (window.__bsVersion || 'main') + '/data/partners.json'; }
   var HOSTS = ['https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net', 'https://gcore.jsdelivr.net'];
   var LIST_RE = /можно приобрести/i;          // по этой фразе находим список магазинов
   var UNIT = 'шт.';
@@ -31,7 +32,7 @@
     var v = Math.floor(Date.now() / 3600000), i = 0;
     function next() {
       if (i >= HOSTS.length) { log('файл остатков не загрузился'); return; }
-      fetch(HOSTS[i++] + DATA_FILE + '?v=' + v)
+      fetch(HOSTS[i++] + dataFile() + '?v=' + v)
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (j) { ROWS = (j && j.items) || []; log('строк остатков:', ROWS.length, '| обновлено:', j && j.updated); render(); })
         .catch(next);

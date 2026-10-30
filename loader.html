@@ -1,19 +1,34 @@
-<!-- ===== Black Sable: загрузка скриптов сайта из GitHub (вместо блоков с кодом в подвале) ===== -->
+<!-- ===== Black Sable: загрузка скриптов сайта из GitHub ===== -->
 <script>
 (function () {
   if (window.__bsLoader) return;
   window.__bsLoader = true;
-  var FILE = '/gh/UlyanaNechipor/blacksable-site@main/blacksable.js';
-  var HOSTS = ['https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net', 'https://gcore.jsdelivr.net']; // основной и два запасных сервера
-  var v = Math.floor(Date.now() / 3600000); // раз в час браузер берёт свежий файл
-  var i = 0;
-  function next() {
-    if (window.__bsSiteLoaded || i >= HOSTS.length) return;
-    var s = document.createElement('script');
-    s.src = HOSTS[i++] + FILE + '?v=' + v;
-    s.onerror = function () { s.remove(); next(); };   // сервер недоступен — пробуем следующий
-    document.body.appendChild(s);
+  var REPO = 'UlyanaNechipor/blacksable-site';
+  var HOSTS = ['https://cdn.jsdelivr.net', 'https://gcore.jsdelivr.net', 'https://fastly.jsdelivr.net'];
+  var picked = false;   // версия уже выбрана
+
+  function load(ver) {
+    window.__bsVersion = ver;                       // нужна и файлу остатков у партнёров
+    var i = 0;
+    (function next() {
+      if (window.__bsSiteLoaded || i >= HOSTS.length) return;
+      var s = document.createElement('script');
+      s.src = HOSTS[i++] + '/gh/' + REPO + '@' + ver + '/blacksable.js';
+      s.onerror = function () { s.remove(); next(); };   // сервер недоступен — пробуем следующий
+      document.body.appendChild(s);
+    })();
   }
-  next();
+
+  // 1) узнаём номер последней версии (GitHub держит этот файл не дольше 5 минут)
+  var timer = setTimeout(function () { if (!picked) { picked = true; load('main'); } }, 1500);
+  fetch('https://raw.githubusercontent.com/' + REPO + '/main/version.txt')
+    .then(function (r) { return r.ok ? r.text() : ''; })
+    .then(function (t) {
+      t = (t || '').trim();
+      if (picked) return;
+      clearTimeout(timer); picked = true;
+      load(/^[0-9a-f]{7,40}$/i.test(t) ? t : 'main');
+    })
+    .catch(function () { if (!picked) { clearTimeout(timer); picked = true; load('main'); } });
 })();
 </script>
