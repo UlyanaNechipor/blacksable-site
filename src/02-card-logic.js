@@ -60,7 +60,9 @@
     '}' +
     '.js-cl-subscribe *, .js-cl-preorder * { color: ' + TEXT_COLOR + ' !important; font-size: inherit !important; }' +
     '@media screen and (max-width: ' + MOBILE_MAX_WIDTH + ') {' +
-      '.js-cl-subscribe, .js-cl-preorder { font-size: ' + FONT_MOBILE + ' !important; }' +
+      // те же селекторы, что у правила 14px выше, иначе оно перебивает мобильный размер
+      'a.t-btn.js-cl-subscribe, .t-btn.js-cl-subscribe, .js-cl-subscribe,' +
+      'a.t-btn.js-cl-preorder, .t-btn.js-cl-preorder, .js-cl-preorder { font-size: ' + FONT_MOBILE + ' !important; }' +
     '}';
   document.head.appendChild(styleEl);
 
