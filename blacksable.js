@@ -1865,6 +1865,16 @@ try {
   var HOSTS = ['https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net', 'https://gcore.jsdelivr.net'];
   var CARD_SEL = '.t-store__card';
 
+  // =====================================================================
+  //  ДРУГОЕ ФОТО КАРТОЧКИ В ОТДЕЛЬНОМ КАТАЛОГЕ
+  //  catalog: адрес каталога (начало), uid: номер товара в Тильде,
+  //  photo: какое по счёту фото товара показывать (1 — первое, 2 — второе…)
+  // =====================================================================
+  var PHOTO_RULES = [
+    { catalog: '/catalog_man', uid: '138371138193', photo: 2 },   // Домашние мюли Enigma Black — фото без модели
+    { catalog: '/catalog_man', uid: '594148739343', photo: 2 }    // Варежки из меха соболя Enigma Black — фото без модели
+  ];
+
   function log() { if (DEBUG && window.console) console.log.apply(console, ['[catalog-colors]'].concat([].slice.call(arguments))); }
   function cleanPath(p) {
     var path = p || '';
@@ -1888,18 +1898,20 @@ try {
 
   // фото в том же размере, в каком Тильда показывает карточки (облегчённое webp)
   function imgUrl(rel, sample) {
-    var m = String(rel).match(/^([^\/]+)\/(.+)$/);
-    if (!m) return BASE + rel;
+    rel = String(rel).replace(/^https?:\/\/static\.tildacdn\.com\//, '');
+    var m = rel.match(/^([^\/]+)\/([^\/]+)$/);
+    if (!m) return /^https?:/.test(rel) ? rel : BASE + rel;
     var size = '400x600';
     var s = sample && sample.match(/\/-\/resize\/(\d+x\d+)\//);
     if (s) size = s[1];
-    return 'https://optim.tildacdn.com/' + m[1] + '/-/resize/' + size + '/-/format/webp/' + m[2] + '.webp';
+    return 'https://optim.tildacdn.com/' + m[1] + '/-/resize/' + size + '/-/format/webp/' + m[2] + (/\.webp$/i.test(m[2]) ? '' : '.webp');
   }
 
   function setPhoto(card, info) {
     var el = card.querySelector('.js-product-img');
     if (!el || !info || !info.img) return;
-    var full = BASE + info.img;
+    if (card.hasAttribute('data-bs-photo') && !info.rule) return;   // фото задано правилом каталога
+    var full = /^https?:/.test(info.img) ? info.img : BASE + info.img;
     if (el.getAttribute('data-original') === full) return;
     var cur = el.style.backgroundImage || '';
     el.setAttribute('data-original', full);
@@ -1920,7 +1932,38 @@ try {
     [].slice.call(card.querySelectorAll('a[href]')).forEach(function (a) { a.setAttribute('href', abs); });
   }
 
+  // ---------- фото по правилам каталога ----------
+  var here = location.pathname.toLowerCase(), GALLERY = {}, asked = {};
+  var myRules = PHOTO_RULES.filter(function (r) { return here.indexOf(r.catalog.toLowerCase()) === 0; });
+  function applyRules() {
+    if (!myRules.length) return;
+    myRules.forEach(function (r) {
+      var cards = [].slice.call(document.querySelectorAll(CARD_SEL + '[data-product-gen-uid="' + r.uid + '"]'));
+      if (!cards.length) return;
+      var g = GALLERY[r.uid];
+      if (!g) { askGallery(r.uid); return; }
+      var img = g[r.photo - 1];
+      if (!img) return;
+      cards.forEach(function (c) { c.setAttribute('data-bs-photo', r.photo); setPhoto(c, { img: img, rule: true }); });
+    });
+  }
+  function askGallery(uid) {
+    if (asked[uid]) return;
+    asked[uid] = true;
+    fetch('https://store.tildaapi.com/api/getproductsbyuid/', { method: 'POST', body: JSON.stringify({ productsuid: [uid], c: Date.now() }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var p = j && j.products && j.products[0], g = p && p.gallery;
+        if (typeof g === 'string') { try { g = JSON.parse(g); } catch (e) { g = []; } }
+        GALLERY[uid] = (g || []).map(function (x) { return x.img; }).filter(Boolean);
+        log('фото товара', uid, GALLERY[uid]);
+        run();
+      })
+      .catch(function () {});
+  }
+
   function process() {
+    applyRules();
     if (!PAGES || !BY_PATH) return;
     // каждый список карточек обрабатываем отдельно (на странице может быть несколько каталогов)
     var lists = [];
