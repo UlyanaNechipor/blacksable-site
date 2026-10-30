@@ -144,6 +144,7 @@
       { name: 'Кэмэл',   url: '/item_acc_w_shapka_ushanka_iz_cashemira_camel_bs-fhk-g' }
     ]}
   ];
+  window.__bsColorGroups = GROUPS;   // этим же списком пользуется каталог (карточки каждого цвета)
 
   // находим группу, в которой есть адрес этой страницы; если её нет — это не товар с цветами
   function cleanPath(p) {
