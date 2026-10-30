@@ -1,0 +1,19 @@
+<!-- ===== Black Sable: загрузка скриптов сайта из GitHub (вместо блоков с кодом в подвале) ===== -->
+<script>
+(function () {
+  if (window.__bsLoader) return;
+  window.__bsLoader = true;
+  var FILE = '/gh/UlyanaNechipor/blacksable-site@main/blacksable.js';
+  var HOSTS = ['https://gcore.jsdelivr.net', 'https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net'];
+  var v = Math.floor(Date.now() / 3600000); // раз в час браузер берёт свежий файл
+  var i = 0;
+  function next() {
+    if (window.__bsSiteLoaded || i >= HOSTS.length) return;
+    var s = document.createElement('script');
+    s.src = HOSTS[i++] + FILE + '?v=' + v;
+    s.onerror = function () { s.remove(); next(); };   // сервер недоступен — пробуем следующий
+    document.body.appendChild(s);
+  }
+  next();
+})();
+</script>

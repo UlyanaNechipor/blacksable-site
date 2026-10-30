@@ -1,7 +1,8 @@
 """Собирает blacksable.js из файлов src/*.js (по порядку имён). Запуск: python3 tools/build.py"""
 import glob, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-out = ['/*! Black Sable — скрипты сайта. Собрано из файлов в папке src/. Не редактируйте этот файл вручную. */']
+out = ['/*! Black Sable — скрипты сайта. Собрано из файлов в папке src/. Не редактируйте этот файл вручную. */',
+       'if (window.__bsSiteLoaded) { throw new Error("blacksable.js уже загружен"); }\nwindow.__bsSiteLoaded = true;']
 for path in sorted(glob.glob(os.path.join(ROOT, 'src', '*.js'))):
     name = os.path.splitext(os.path.basename(path))[0]
     body = open(path, encoding='utf8').read().rstrip() + '\n'

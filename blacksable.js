@@ -1,5 +1,8 @@
 /*! Black Sable — скрипты сайта. Собрано из файлов в папке src/. Не редактируйте этот файл вручную. */
 
+if (window.__bsSiteLoaded) { throw new Error("blacksable.js уже загружен"); }
+window.__bsSiteLoaded = true;
+
 try {
 /* ===== Цена в заголовке карточки ===== */
 (function () {
