@@ -4,7 +4,7 @@
   if (window.__bsLoader) return;
   window.__bsLoader = true;
   var FILE = '/gh/UlyanaNechipor/blacksable-site@main/blacksable.js';
-  var HOSTS = ['https://gcore.jsdelivr.net', 'https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net'];
+  var HOSTS = ['https://cdn.jsdelivr.net', 'https://fastly.jsdelivr.net', 'https://gcore.jsdelivr.net']; // основной и два запасных сервера
   var v = Math.floor(Date.now() / 3600000); // раз в час браузер берёт свежий файл
   var i = 0;
   function next() {
