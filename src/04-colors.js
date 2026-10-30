@@ -142,6 +142,10 @@
       { name: 'Бежевый', url: '/item_acc_w_shapka_ushanka_iz_cashemira_biege_bs-fhk-g' },
       { name: 'Каштан',  url: '/item_acc_w_shapka_ushanka_iz_cashemira_kashtan_bs-fhk-g' },
       { name: 'Кэмэл',   url: '/item_acc_w_shapka_ushanka_iz_cashemira_camel_bs-fhk-g' }
+    ]},
+    { product: 'Пальто Monica BS-FWCC-EB', colors: [
+      { name: 'Синий',      url: '/item_w_palto_monica_iz_cashmere_i_mexa_sobolya_enigma_black_blue_bs_fwcc-eb' },
+      { name: 'Коричневый', url: '/item_w_palto_monica_iz_cashmere_i_mexa_sobolya_enigma_black_brown_bs_fwcc-eb' }
     ]}
   ];
   window.__bsColorGroups = GROUPS;   // этим же списком пользуется каталог (карточки каждого цвета)
