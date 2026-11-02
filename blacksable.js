@@ -2195,6 +2195,7 @@ try {
   var SUCCESS_TEXT = 'Спасибо! Заказ оформлен. Менеджер свяжется с вами в ближайшее время, чтобы согласовать оплату и доставку.';
   var NOTE_NAME = 'Оплата';
   var ONLINE_RE = /kassa|yookassa|yakassa|cloudpay|tinkoff|sber|robokassa|online|онлайн|карт/i;
+  var NONCASH_RE = /безнал|сч[её]т|перевод|banktransfer|invoice|transfer/i;   // безналичная оплата — выбираем первой
 
   function cartSum() {
     var c = window.tcart;
@@ -2213,7 +2214,7 @@ try {
     return ONLINE_RE.test(input.value) || ONLINE_RE.test(label ? label.textContent : '');
   }
 
-  var overOnSubmit = false;
+  var overOnSubmit = false, noncashOnSubmit = false;
 
   function update() {
     var over = cartSum() > LIMIT;
@@ -2226,7 +2227,10 @@ try {
         if (isOnline(i)) { i.disabled = over; if (row) row.style.display = over ? 'none' : ''; }
       });
       if (over && offline.length) {
-        if (!offline.some(function (i) { return i.checked; })) { offline[0].checked = true; offline[0].dispatchEvent(new Event('change', { bubbles: true })); }
+        if (!offline.some(function (i) { return i.checked; })) {
+          var pick = offline.filter(function (i) { var l = i.closest('label'); return NONCASH_RE.test(i.value) || NONCASH_RE.test(l ? l.textContent : ''); })[0] || offline[0];
+          pick.checked = true; pick.dispatchEvent(new Event('change', { bubbles: true }));
+        }
         if (!note) {
           note = document.createElement('input');
           note.type = 'hidden'; note.name = NOTE_NAME; note.setAttribute('data-bs-note', '1');
@@ -2247,6 +2251,8 @@ try {
     var radios = payRadios(form);
     var picked = radios.filter(function (i) { return i.checked; })[0];
     overOnSubmit = cartSum() > LIMIT && !!picked && !isOnline(picked);
+    var pl = picked && picked.closest('label');
+    noncashOnSubmit = !!picked && (NONCASH_RE.test(picked.value) || NONCASH_RE.test(pl ? pl.textContent : ''));
   }, true);
 
   // после успешной отправки — страница успеха или наше сообщение
@@ -2255,6 +2261,8 @@ try {
     overOnSubmit = false;
     if (SUCCESS_URL) { location.href = SUCCESS_URL; return; }
     var box = form && form.querySelector('.t-form__successbox');
+    // у безналичной оплаты своё сообщение / страница успеха в настройках Тильды — его не трогаем
+    if (noncashOnSubmit) return;
     if (box) { box.textContent = SUCCESS_TEXT; box.style.display = 'block'; }
   }
   document.addEventListener('tildaform:aftersuccess', function (e) {
@@ -2265,7 +2273,7 @@ try {
   new MutationObserver(function () {
     if (!overOnSubmit) return;
     var box = document.querySelector('.t706 .t-form__successbox');
-    if (box && box.style.display !== 'none' && box.textContent.trim()) afterSuccess(box.closest('form'));
+    if (box && box.style.display !== 'none') afterSuccess(box.closest('form'));
   }).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['style'], childList: true });
 
   var timer = null;
