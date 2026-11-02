@@ -137,18 +137,37 @@
       try { sessionStorage.setItem(SORT_KEY, mode); } catch (e) {}
       [].slice.call(document.querySelectorAll('.bs-sort select')).forEach(function (s) { s.value = mode; });
       run();
+      [].slice.call(document.querySelectorAll('.bs-sort select')).forEach(fitSelect);
     });
     bar.appendChild(lab); bar.appendChild(sel);
     list.parentNode.insertBefore(bar, list);
     return bar;
   }
   function alignBar(bar, list) {
-    // отступы панели — как у карточек, чтобы правый край совпадал с сеткой
-    var first = list.querySelector(':scope > ' + CARD_SEL);
-    if (!first) return;
-    var lr = list.getBoundingClientRect(), cr = first.getBoundingClientRect();
-    var pad = Math.max(0, Math.round(cr.left - lr.left)) + 'px';
-    if (bar.style.paddingLeft !== pad) { bar.style.paddingLeft = pad; bar.style.paddingRight = pad; }
+    // края панели — по краям карточек, чтобы она стояла ровно над сеткой
+    var cs = [].slice.call(list.querySelectorAll(':scope > ' + CARD_SEL));
+    if (!cs.length) return;
+    var lr = list.getBoundingClientRect(), top = cs[0].getBoundingClientRect().top, right = 0, left = Infinity;
+    cs.forEach(function (c) {
+      var r = c.getBoundingClientRect();
+      if (Math.abs(r.top - top) > 2) return;
+      right = Math.max(right, r.right); left = Math.min(left, r.left);
+    });
+    var pl = Math.max(0, Math.round(left - lr.left)) + 'px', pr = Math.max(0, Math.round(lr.right - right)) + 'px';
+    if (bar.style.paddingLeft !== pl) bar.style.paddingLeft = pl;
+    if (bar.style.paddingRight !== pr) bar.style.paddingRight = pr;
+    fitSelect(bar.querySelector('select'));
+  }
+  // ширина списка — по выбранному пункту, чтобы стрелка стояла сразу после текста
+  function fitSelect(sel) {
+    if (!sel) return;
+    var m = document.createElement('span'), cs = getComputedStyle(sel);
+    m.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;text-transform:uppercase;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing;
+    m.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+    document.body.appendChild(m);
+    var w = Math.ceil(m.getBoundingClientRect().width) + 18 + 'px';
+    m.remove();
+    if (sel.style.width !== w) sel.style.width = w;
   }
 
   function sortList(list) {
