@@ -1,4 +1,4 @@
-/* ===== Каталог как в интернет-магазине: название, артикул и цена в карточке + сортировка =====
+/* ===== Каталог как в интернет-магазине: цена под артикулом в карточке + сортировка =====
    Работает на страницах каталога (/catalog…). Карточки цветов (src/07) обрабатываются так же,
    при сортировке карточки цветов остаются рядом со своей основной карточкой. */
 (function () {
@@ -12,27 +12,23 @@
   var SORTS = [
     { id: 'default', label: 'По умолчанию' },
     { id: 'price-asc', label: 'Сначала дешевле' },
-    { id: 'price-desc', label: 'Сначала дороже' },
-    { id: 'name', label: 'По названию' }
+    { id: 'price-desc', label: 'Сначала дороже' }
   ];
   var DEBUG = /[?&]colordebug=1/.test(location.search);
   function log() { if (DEBUG && window.console) console.log.apply(console, ['[catalog-ui]'].concat([].slice.call(arguments))); }
 
   // ---------- оформление ----------
   var css = [
-    // название Тильды (сейчас там артикул) прячем — вместо него наш блок
-    '.bs-ci-on .js-store-prod-name { display: none !important; }',
-    '.bs-ci { padding-bottom: 20px; font-family: var(--t-text-font, Arial); color: #1a1a1a; }',
-    '.bs-ci__name { font-size: 14px; line-height: 1.35; text-transform: uppercase; font-weight: 400; }',
-    '.bs-ci__sku { margin-top: 6px; font-size: 11px; line-height: 1.3; color: #8c8c8c; letter-spacing: .03em; }',
-    '.bs-ci__price { margin-top: 8px; font-size: 13px; line-height: 1.3; }',
-    '.bs-sort { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 0 0 24px;',
+    // под артикулом (заголовок карточки) — строка с ценой
+    '.bs-ci-on .js-store-prod-name { padding-bottom: 0 !important; }',
+    '.bs-ci { padding: 6px 0 20px; font-family: var(--t-text-font, Arial); color: #1a1a1a; font-size: 13px; line-height: 1.3; }',
+    '.bs-sort { display: flex; justify-content: flex-start; align-items: center; gap: 8px; margin: 0 0 24px;',
     '  font-family: var(--t-text-font, Arial); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #8c8c8c; }',
     '.bs-sort select { -webkit-appearance: none; appearance: none; border: 0; border-radius: 0; background: transparent',
     '  url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'9\' height=\'6\'%3E%3Cpath d=\'M.5.5l4 4 4-4\' fill=\'none\' stroke=\'%231a1a1a\'/%3E%3C/svg%3E") no-repeat right center;',
     '  padding: 4px 16px 4px 0; margin: 0; font: inherit; text-transform: uppercase; letter-spacing: .06em; color: #1a1a1a; cursor: pointer; outline: none; }',
     '@media (max-width: 640px) {',
-    '  .bs-ci__name { font-size: 11px; } .bs-ci__sku { font-size: 10px; } .bs-ci__price { font-size: 11px; }',
+    '  .bs-ci { font-size: 11px; }',
     '  .bs-sort { margin-bottom: 16px; }',
     '}'
   ].join('\n');
@@ -82,25 +78,15 @@
   }
   function fillCard(card) {
     var p = PRODUCTS[card.getAttribute('data-product-gen-uid')];
-    if (!p) return;
-    var wrap = card.querySelector('.t-store__card__textwrapper');
-    if (!wrap) return;
-    var name = p.name, sku = cardSku(card, p), price = fmtPrice(cardPrice(card, p));
-    var sig = name + '|' + sku + '|' + price;
-    var box = wrap.querySelector('.bs-ci');
-    if (box && box.getAttribute('data-sig') === sig) return;
-    if (!box) { box = document.createElement('div'); box.className = 'bs-ci'; wrap.insertBefore(box, wrap.firstChild); }
-    box.innerHTML = '';
-    [['name', name], ['sku', sku], ['price', price]].forEach(function (x) {
-      if (!x[1]) return;
-      var d = document.createElement('div');
-      d.className = 'bs-ci__' + x[0];
-      d.textContent = x[1];
-      if (x[0] !== 'name') d.setAttribute('translate', 'no');
-      box.appendChild(d);
-    });
-    box.setAttribute('data-sig', sig);
-    wrap.classList.add('bs-ci-on', 'no-typo');
+    var title = card.querySelector('.js-store-prod-name');
+    if (!title) return;
+    var price = fmtPrice(cardPrice(card, p));
+    if (!price) return;
+    var box = title.nextElementSibling && title.nextElementSibling.classList.contains('bs-ci') ? title.nextElementSibling : null;
+    if (box && box.textContent === price) return;
+    if (!box) { box = document.createElement('div'); box.className = 'bs-ci no-typo'; box.setAttribute('translate', 'no'); title.parentNode.insertBefore(box, title.nextSibling); }
+    box.textContent = price;
+    title.parentNode.classList.add('bs-ci-on');
   }
 
   // ---------- сортировка ----------
@@ -207,7 +193,8 @@
     busy = true;
     try {
       var all = [].slice.call(document.querySelectorAll(CARD_SEL));
-      loadProducts(all.map(function (c) { return c.getAttribute('data-product-gen-uid'); }));
+      // цена берётся из самой карточки; данные магазина подгружаем, только если в карточке её нет
+      loadProducts(all.filter(function (c) { return !cardPrice(c); }).map(function (c) { return c.getAttribute('data-product-gen-uid'); }));
       all.forEach(fillCard);
       lists().forEach(function (list) {
         var bar = addBar(list);
