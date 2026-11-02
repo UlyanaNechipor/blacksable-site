@@ -22,14 +22,15 @@
     // под артикулом (заголовок карточки) — строка с ценой
     '.bs-ci-on .js-store-prod-name { padding-bottom: 0 !important; }',
     '.bs-ci { padding: 6px 0 20px; font-family: var(--t-text-font, Arial); color: #1a1a1a; font-size: 13px; line-height: 1.3; }',
-    '.bs-sort { display: flex; justify-content: flex-start; align-items: center; gap: 8px; margin: 0 0 24px;',
-    '  font-family: var(--t-text-font, Arial); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #8c8c8c; }',
+    // шрифт — как у пунктов меню в шапке
+    '.bs-sort { display: flex; justify-content: flex-start; align-items: center; gap: 6px; margin: 0 0 24px;',
+    '  font-family: Avenir, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.4; color: #1a1a1a; }',
     '.bs-sort select { -webkit-appearance: none; appearance: none; border: 0; border-radius: 0; background: transparent',
     '  url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'9\' height=\'6\'%3E%3Cpath d=\'M.5.5l4 4 4-4\' fill=\'none\' stroke=\'%231a1a1a\'/%3E%3C/svg%3E") no-repeat right center;',
-    '  padding: 4px 16px 4px 0; margin: 0; font: inherit; text-transform: uppercase; letter-spacing: .06em; color: #1a1a1a; cursor: pointer; outline: none; }',
+    '  padding: 2px 16px 2px 0; margin: 0; font: inherit; color: #1a1a1a; cursor: pointer; outline: none; }',
     '@media (max-width: 640px) {',
     '  .bs-ci { font-size: 11px; }',
-    '  .bs-sort { margin-bottom: 16px; }',
+    '  .bs-sort { margin-bottom: 16px; font-size: 11px; }',
     '}'
   ].join('\n');
   var style = document.createElement('style');
@@ -108,7 +109,7 @@
     var bar = document.createElement('div');
     bar.className = 'bs-sort no-typo';
     var lab = document.createElement('label');
-    lab.textContent = 'Сортировка';
+    lab.textContent = 'Сортировка:';
     var sel = document.createElement('select');
     sel.setAttribute('aria-label', 'Сортировка');
     SORTS.forEach(function (s) {
@@ -148,7 +149,7 @@
   function fitSelect(sel) {
     if (!sel) return;
     var m = document.createElement('span'), cs = getComputedStyle(sel);
-    m.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;text-transform:uppercase;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing;
+    m.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing;
     m.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
     document.body.appendChild(m);
     var w = Math.ceil(m.getBoundingClientRect().width) + 18 + 'px';
