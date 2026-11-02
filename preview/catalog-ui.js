@@ -149,7 +149,7 @@
     if (!cs.length) return;
     var lr = list.getBoundingClientRect(), top = cs[0].getBoundingClientRect().top, right = 0, left = Infinity;
     cs.forEach(function (c) {
-      var r = c.getBoundingClientRect();
+      var r = (c.querySelector('.t-store__card__imgwrapper') || c).getBoundingClientRect();   // по краю фото
       if (Math.abs(r.top - top) > 2) return;
       right = Math.max(right, r.right); left = Math.min(left, r.left);
     });
