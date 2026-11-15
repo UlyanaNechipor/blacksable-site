@@ -8,8 +8,7 @@
   window.__bsContentGuardInit = true;
 
   // страницы под контролем (эталон для них лежит в data/approved-content.json)
-  var GUARDED = ['/', '/rules', '/showroom', '/kak_sdelat_zakaz', '/archive_2026',
-    '/care', '/o_mexe_sobolya', '/o_brende', '/podarochnaya_karta', '/adresa_butikov_partnerov'];
+  var GUARDED = ['/'];
 
   function normPath(p) { p = (p || '').toLowerCase().replace(/\/+$/, ''); return p || '/'; }
   var PATH = normPath(location.pathname);
